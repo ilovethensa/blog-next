@@ -20,7 +20,7 @@ Join our webrings and explore more:
 
 - {{ webring(prev="https://fediring.net/previous?host=theholytachanka.com", webring="https://fediring.net", webringName="Fediring", next="https://fediring.net/next?host=theholytachanka.com") }}
 \
-
+ 
 ![](https://512kb.club/assets/images/green-team.svg) 
 ![https://yesterweb.org/no-to-web3/](noweb32.gif) 
 ![#](cat.gif)
