@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://theholytachanka.com/</loc>
+    </url>
+    <url>
+        <loc>https://theholytachanka.com/blog/</loc>
+    </url>
+    <url>
+        <loc>https://theholytachanka.com/blog/default-apps/</loc>
+        <lastmod>2023-11-09</lastmod>
+    </url>
+    <url>
+        <loc>https://theholytachanka.com/blog/first-post/</loc>
+        <lastmod>2023-10-27</lastmod>
+    </url>
+    <url>
+        <loc>https://theholytachanka.com/blog/happy-new-year-2024/</loc>
+        <lastmod>2024-01-01</lastmod>
+    </url>
+    <url>
+        <loc>https://theholytachanka.com/blog/nixos-tmpfs-encrypted-install/</loc>
+        <lastmod>2024-02-27</lastmod>
+    </url>
+    <url>
+        <loc>https://theholytachanka.com/blog/page/1/</loc>
+    </url>
+    <url>
+        <loc>https://theholytachanka.com/blog/setting-up-resolve/</loc>
+        <lastmod>2024-04-19</lastmod>
+    </url>
+</urlset>

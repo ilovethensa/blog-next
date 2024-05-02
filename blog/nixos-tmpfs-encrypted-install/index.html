@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<meta name="robots" content="index, follow">
+
+
+
+
+
+
+
+
+
+
+
+
+<title>How to install encrypted root-on-tmpfs nixos</title>
+
+
+
+<meta name="title" content="How to install encrypted root-on-tmpfs nixos">
+
+
+
+<meta name="description" content="Guide on how to install nixos on tmpfs encrypted">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theholytachanka.com/blog/nixos-tmpfs-encrypted-install/">
+
+<meta property="og:site_name" content="">
+
+
+<meta property="og:title" content="How to install encrypted root-on-tmpfs nixos">
+
+
+<meta property="og:description" content="Guide on how to install nixos on tmpfs encrypted">
+
+
+
+
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://theholytachanka.com/blog/nixos-tmpfs-encrypted-install/">
+
+<meta property="twitter:title" content="How to install encrypted root-on-tmpfs nixos">
+
+
+<meta property="twitter:description" content="Guide on how to install nixos on tmpfs encrypted">
+
+
+
+<link rel="canonical" href="https://theholytachanka.com/blog/nixos-tmpfs-encrypted-install/">
+
+
+
+
+<link rel="alternate" type="application/atom+xml" title="RSS" href="https://theholytachanka.com/atom.xml"> 
+
+
+
+<link rel="stylesheet" type="text/css" href="https://speyll.github.io/suCSS/reset-min.css"/>
+<link rel="stylesheet" type="text/css" href="https://speyll.github.io/suCSS/suCSS-min.css"/>
+<link rel="stylesheet" type="text/css" href="https://theholytachanka.com/css/style.css"/>
+
+<script src="https://theholytachanka.com/js/script.js" defer></script>
+
+
+</head>
+<body>
+      <header>
+          
+
+  
+
+
+  <nav id="nav-bar">
+    
+      <a href="&#x2F;" class="">
+        
+        &#x2F;home&#x2F;
+      </a>
+    
+      <a href="&#x2F;blog" class="">
+        
+        &#x2F;blog&#x2F;
+      </a>
+    
+    <div>
+      <input type="checkbox" id="theme-toggle" style="display: none;">
+      <label for="theme-toggle" id="theme-toggle-label"><svg id="theme-icon" class="icons"><use href="https://theholytachanka.com/icons.svg#lightMode"></use></svg></label>
+      <audio id="theme-sound">
+        <source src="https://theholytachanka.com/click.ogg" type="audio/ogg">
+      </audio>
+    </div>
+  </nav>
+
+
+      </header>
+      <main>
+          
+<div><a href="..">..</a>/<span class="accent-data">nixos-tmpfs-encrypted-install</span></div>
+<time datetime="2024-02-27">Published on: <span class="accent-data">2024-02-27</span></time>
+
+<h1>How to install encrypted root-on-tmpfs nixos</h1>
+
+
+
+<ul>
+<li>This guide assumes that you have already booted into NixOS live.</li>
+<li>Basic Linux knowledge is assumed.</li>
+</ul>
+<p>This guide is mainly based off of <a href="https://elis.nu/blog/2020/05/nixos-tmpfs-as-root/">this blog post</a> but tweaked for Btrfs and encryption</p>
+<h2 id="partitioning-the-drives">Partitioning the drives</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">cfdisk</span><span> /dev/sda
+</span></code></pre>
+<h2 id="creating-filesystems">Creating filesystems</h2>
+<p>Firstly you need to create a 32-bit vFAT for the ESP partition</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">mkfs.vfat -F32</span><span> /dev/sda1
+</span></code></pre>
+<p>Then we can create a LUKS parition for /nix</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Format the drive to LUKS
+</span><span style="color:#bf616a;">cryptsetup</span><span> luksFormat /dev/sda2
+</span><span style="color:#65737e;"># Open the LUKS drive
+</span><span style="color:#bf616a;">cryptsetup</span><span> luksOpen /dev/sda2 cryptroot
+</span><span style="color:#bf616a;">mkfs.btrfs</span><span> /dev/mapper/cryptroot
+</span></code></pre>
+<h2 id="creating-subvolumes">Creating subvolumes</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Temporally mount the partition to /mnt
+</span><span style="color:#bf616a;">mount</span><span> /dev/mapper/cryptroot /mnt
+</span><span style="color:#65737e;"># Create a subvolume for /nix
+</span><span style="color:#bf616a;">btrfs</span><span> subvolume create /mnt/@nix
+</span><span style="color:#65737e;"># Create a subvolume for /home
+</span><span style="color:#bf616a;">btrfs</span><span> subvolume create /mnt/@home
+</span><span style="color:#65737e;"># Unmount it
+</span><span style="color:#bf616a;">umount</span><span> /mnt
+</span></code></pre>
+<h1 id="setting-up-the-filesystems">Setting up the filesystems</h1>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Mount the root file system
+</span><span style="color:#bf616a;">mount -t</span><span> tmpfs none /mnt
+</span><span style="color:#65737e;"># Create directories
+</span><span style="color:#bf616a;">mkdir -p</span><span> /mnt/{boot,nix,home}
+</span><span>
+</span><span style="color:#65737e;"># Mount /boot and /nix
+</span><span style="color:#bf616a;">mount -t</span><span> btrfs</span><span style="color:#bf616a;"> -o</span><span> compress=zstd,subvol=@nix /dev/mapper/cryptroot /mnt/nix
+</span><span style="color:#bf616a;">mount -t</span><span> btrfs</span><span style="color:#bf616a;"> -o</span><span> compress=zstd,subvol=@home /dev/mapper/cryptroot /mnt/home
+</span><span style="color:#bf616a;">mount</span><span> /dev/sda1 /mnt/boot
+</span></code></pre>
+<h2 id="configuration">Configuration</h2>
+<p>Now first create a nixos config using</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">nixos-generate-config --root</span><span> /mnt
+</span></code></pre>
+<pre data-lang="nix" style="background-color:#2b303b;color:#c0c5ce;" class="language-nix "><code class="language-nix" data-lang="nix"><span style="color:#bf616a;">fileSystems</span><span>.&quot;</span><span style="color:#a3be8c;">/</span><span>&quot; </span><span style="background-color:#bf616a;color:#2b303b;">=</span><span> {
+</span><span>  </span><span style="color:#d08770;">fsType </span><span>= &quot;</span><span style="color:#a3be8c;">tmpfs</span><span>&quot;;
+</span><span>  </span><span style="color:#d08770;">options </span><span>= [ &quot;</span><span style="color:#a3be8c;">defaults</span><span>&quot; &quot;</span><span style="color:#a3be8c;">size=2G</span><span>&quot; &quot;</span><span style="color:#a3be8c;">mode=755</span><span>&quot; ];
+</span><span>}</span><span style="background-color:#bf616a;color:#2b303b;">;</span><span>
+</span></code></pre>
+<h3 id="users">Users</h3>
+<p>When you have a system with a tmpfs root you have to configure all users and passwords in configuration.nix, otherwise you won’t have any user or a password on the next boot.</p>
+<p>You probably want to have immutable users as well since it doesn’t make any sense to have mutability of users if it’s going to reset anyways.</p>
+<blockquote>
+<p>Note: Don’t use the options password or hashedPassword for users because it won’t work. It has to be the options named initialPassword or initialHashedPassword.</p>
+</blockquote>
+<pre data-lang="nix" style="background-color:#2b303b;color:#c0c5ce;" class="language-nix "><code class="language-nix" data-lang="nix"><span>{
+</span><span>  </span><span style="color:#65737e;"># …
+</span><span>
+</span><span>  </span><span style="color:#65737e;"># Don&#39;t allow mutation of users outside of the config.
+</span><span>  </span><span style="color:#d08770;">users</span><span>.</span><span style="color:#d08770;">mutableUsers </span><span>= </span><span style="color:#d08770;">false</span><span>;
+</span><span>
+</span><span>  </span><span style="color:#65737e;"># Set a root password, consider using initialHashedPassword instead.
+</span><span>  </span><span style="color:#65737e;">#
+</span><span>  </span><span style="color:#65737e;"># To generate a hash to put in initialHashedPassword
+</span><span>  </span><span style="color:#65737e;"># you can do this:
+</span><span>  </span><span style="color:#65737e;"># $ nix-shell --run &#39;mkpasswd -m SHA-512 -s&#39; -p mkpasswd
+</span><span>  </span><span style="color:#d08770;">users</span><span>.</span><span style="color:#d08770;">users</span><span>.</span><span style="color:#d08770;">root</span><span>.</span><span style="color:#d08770;">initialPassword </span><span>= &quot;</span><span style="color:#a3be8c;">hunter2</span><span>&quot;;
+</span><span>
+</span><span>  </span><span style="color:#65737e;"># …
+</span><span>}
+</span></code></pre>
+<h3 id="other">Other</h3>
+<p>You can now tweak anything else you want in the config file(Timezones, users, etc)
+Just make sure to copy <code>/etc/nixos</code> to <code>/nix</code> to preserve your configs</p>
+<h2 id="installing">Installing</h2>
+<p>Now to install the system just run</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>nixos-install --no-root-passwd
+</span></code></pre>
+
+
+<p class="tags-data">
+  
+</p>
+
+      </main>
+      <footer>
+          <hr>
+<div id="footer-container">
+  
+  <div>
+    <p>Theme and color theme licensed under <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Licence_MIT">MIT</a>.<br>
+      Built with <a target="_blank" rel="noopener noreferrer" href="https://www.getzola.org">Zola</a> using <a target="_blank" rel="noopener noreferrer" href="https://github.com/Speyll/anemone">anemone</a> theme, <a target="_blank" rel="noopener noreferrer" href="https://speyll.github.io/suCSS/">suCSS</a> framework &amp; <a target="_blank" rel="noopener noreferrer" href="https://github.com/Speyll/veqev">veqev</a>.<br>
+    </p>
+
+  </div>
+  
+  <div>
+    <a class="no-style" target="_blank" rel="noopener noreferrer" href="https://theholytachanka.com/atom.xml" title="Subscribe via RSS for updates."><svg class="icons"><use href="https://theholytachanka.com/icons.svg#rss"></use></svg></a>
+  </div>
+  
+</div>
+
+      </footer>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<meta name="robots" content="index, follow">
+
+
+
+
+
+
+
+
+
+
+
+
+<title>Setting up Davinci Resolve on nixos with Rocm and OpenCL</title>
+
+
+
+<meta name="title" content="Setting up Davinci Resolve on nixos with Rocm and OpenCL">
+
+
+
+<meta name="description" content="Guide on how to setup Davinci Resolve with Rocm and OpenCL">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theholytachanka.com/blog/setting-up-resolve/">
+
+<meta property="og:site_name" content="">
+
+
+<meta property="og:title" content="Setting up Davinci Resolve on nixos with Rocm and OpenCL">
+
+
+<meta property="og:description" content="Guide on how to setup Davinci Resolve with Rocm and OpenCL">
+
+
+
+
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="https://theholytachanka.com/blog/setting-up-resolve/">
+
+<meta property="twitter:title" content="Setting up Davinci Resolve on nixos with Rocm and OpenCL">
+
+
+<meta property="twitter:description" content="Guide on how to setup Davinci Resolve with Rocm and OpenCL">
+
+
+
+<link rel="canonical" href="https://theholytachanka.com/blog/setting-up-resolve/">
+
+
+
+
+<link rel="alternate" type="application/atom+xml" title="RSS" href="https://theholytachanka.com/atom.xml"> 
+
+
+
+<link rel="stylesheet" type="text/css" href="https://speyll.github.io/suCSS/reset-min.css"/>
+<link rel="stylesheet" type="text/css" href="https://speyll.github.io/suCSS/suCSS-min.css"/>
+<link rel="stylesheet" type="text/css" href="https://theholytachanka.com/css/style.css"/>
+
+<script src="https://theholytachanka.com/js/script.js" defer></script>
+
+
+</head>
+<body>
+      <header>
+          
+
+  
+
+
+  <nav id="nav-bar">
+    
+      <a href="&#x2F;" class="">
+        
+        &#x2F;home&#x2F;
+      </a>
+    
+      <a href="&#x2F;blog" class="">
+        
+        &#x2F;blog&#x2F;
+      </a>
+    
+    <div>
+      <input type="checkbox" id="theme-toggle" style="display: none;">
+      <label for="theme-toggle" id="theme-toggle-label"><svg id="theme-icon" class="icons"><use href="https://theholytachanka.com/icons.svg#lightMode"></use></svg></label>
+      <audio id="theme-sound">
+        <source src="https://theholytachanka.com/click.ogg" type="audio/ogg">
+      </audio>
+    </div>
+  </nav>
+
+
+      </header>
+      <main>
+          
+<div><a href="..">..</a>/<span class="accent-data">setting-up-resolve</span></div>
+<time datetime="2024-04-19">Published on: <span class="accent-data">2024-04-19</span></time>
+
+<h1>Setting up Davinci Resolve on nixos with Rocm and OpenCL</h1>
+
+
+
+<ul>
+<li>This was only tested on my own GPU(RX 580)</li>
+<li>Basic Nixos know-how is assumed</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>Add it to <code>environment.systemPackages</code></p>
+<pre data-lang="nix" style="background-color:#2b303b;color:#c0c5ce;" class="language-nix "><code class="language-nix" data-lang="nix"><span style="color:#bf616a;">environment</span><span>.</span><span style="color:#bf616a;">systemPackages </span><span style="background-color:#bf616a;color:#2b303b;">=</span><span> [
+</span><span>  </span><span style="color:#bf616a;">pkgs</span><span>.</span><span style="color:#bf616a;">davinci-resolve
+</span><span>]</span><span style="background-color:#bf616a;color:#2b303b;">;</span><span>
+</span></code></pre>
+<p>Now rebuild your system, this will take some time as its a big package</p>
+<h2 id="setting-up-rocm-opencl">Setting up Rocm OpenCL</h2>
+<pre data-lang="nix" style="background-color:#2b303b;color:#c0c5ce;" class="language-nix "><code class="language-nix" data-lang="nix"><span>  </span><span style="color:#65737e;"># Enable openGL and install Rocm
+</span><span>  </span><span style="color:#bf616a;">hardware</span><span>.</span><span style="color:#bf616a;">opengl </span><span style="background-color:#bf616a;color:#2b303b;">=</span><span> {
+</span><span>    </span><span style="color:#d08770;">enable </span><span>= </span><span style="color:#d08770;">true</span><span>;
+</span><span>    </span><span style="color:#d08770;">driSupport </span><span>= </span><span style="color:#d08770;">true</span><span>;
+</span><span>    </span><span style="color:#d08770;">driSupport32Bit </span><span>= </span><span style="color:#d08770;">true</span><span>;
+</span><span>    </span><span style="color:#d08770;">extraPackages </span><span>= </span><span style="color:#b48ead;">with </span><span style="color:#bf616a;">pkgs</span><span>; [
+</span><span>      </span><span style="color:#bf616a;">rocmPackages_5</span><span>.</span><span style="color:#bf616a;">clr</span><span>.</span><span style="color:#bf616a;">icd
+</span><span>      </span><span style="color:#bf616a;">rocmPackages_5</span><span>.</span><span style="color:#bf616a;">clr
+</span><span>      </span><span style="color:#bf616a;">rocmPackages_5</span><span>.</span><span style="color:#bf616a;">rocminfo
+</span><span>      </span><span style="color:#bf616a;">rocmPackages_5</span><span>.</span><span style="color:#bf616a;">rocm-runtime
+</span><span>    ];
+</span><span>  }</span><span style="background-color:#bf616a;color:#2b303b;">;</span><span>
+</span><span>  </span><span style="color:#65737e;"># This is necesery because many programs hard-code the path to hip
+</span><span>  </span><span style="color:#bf616a;">systemd</span><span>.</span><span style="color:#bf616a;">tmpfiles</span><span>.</span><span style="color:#bf616a;">rules </span><span style="background-color:#bf616a;color:#2b303b;">=</span><span> [
+</span><span>    &quot;</span><span style="color:#a3be8c;">L+    /opt/rocm/hip   -    -    -     -    </span><span style="font-style:italic;color:#ab7967;">${</span><span style="font-style:italic;color:#bf616a;">pkgs</span><span style="font-style:italic;color:#c0c5ce;">.</span><span style="font-style:italic;color:#bf616a;">rocmPackages_5</span><span style="font-style:italic;color:#c0c5ce;">.</span><span style="font-style:italic;color:#bf616a;">clr</span><span style="font-style:italic;color:#ab7967;">}</span><span>&quot;
+</span><span>  ]</span><span style="background-color:#bf616a;color:#2b303b;">;</span><span>
+</span><span>  </span><span style="color:#bf616a;">environment</span><span>.</span><span style="color:#bf616a;">variables </span><span style="background-color:#bf616a;color:#2b303b;">=</span><span> {
+</span><span>    </span><span style="color:#65737e;"># As of ROCm 4.5, AMD has disabled OpenCL on Polaris based cards. So this is needed if you have a 500 series card. 
+</span><span>    </span><span style="color:#d08770;">ROC_ENABLE_PRE_VEGA </span><span>= &quot;</span><span style="color:#a3be8c;">1</span><span>&quot;;
+</span><span>  }</span><span style="background-color:#bf616a;color:#2b303b;">;</span><span>
+</span></code></pre>
+<p>Rebuild and reboot</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">sudo</span><span> nixos-rebuild boot
+</span><span style="color:#bf616a;">reboot
+</span></code></pre>
+<h2 id="running-it">Running it</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">davinci-resolve
+</span></code></pre>
+<p>Now this should hopefully detect your GPU and run</p>
+
+
+<p class="tags-data">
+  
+</p>
+
+      </main>
+      <footer>
+          <hr>
+<div id="footer-container">
+  
+  <div>
+    <p>Theme and color theme licensed under <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Licence_MIT">MIT</a>.<br>
+      Built with <a target="_blank" rel="noopener noreferrer" href="https://www.getzola.org">Zola</a> using <a target="_blank" rel="noopener noreferrer" href="https://github.com/Speyll/anemone">anemone</a> theme, <a target="_blank" rel="noopener noreferrer" href="https://speyll.github.io/suCSS/">suCSS</a> framework &amp; <a target="_blank" rel="noopener noreferrer" href="https://github.com/Speyll/veqev">veqev</a>.<br>
+    </p>
+
+  </div>
+  
+  <div>
+    <a class="no-style" target="_blank" rel="noopener noreferrer" href="https://theholytachanka.com/atom.xml" title="Subscribe via RSS for updates."><svg class="icons"><use href="https://theholytachanka.com/icons.svg#rss"></use></svg></a>
+  </div>
+  
+</div>
+
+      </footer>
+</body>
+</html>
