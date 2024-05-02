@@ -9,7 +9,7 @@ I'm a professional shitposter hailing from Bulgaria, and I'm passionate about se
 
 ## Online Presence
 
-Stay connected with us:
+I dont have any other accounts, anyone else is pretending to be me:
 
 - Email: [me@theholytachanka.com](mailto:me@theholytachanka.com)
 - Code Repositories: [ilovethensa](https://github.com/ilovethensa)
@@ -18,8 +18,7 @@ Stay connected with us:
 
 Join our webrings and explore more:
 
-- 🈯 {{ webring(prev="#", webring="#", webringName="Random Webring", next="#") }}
-- 🎶 {{ webring(prev="#", webring="#", webringName="Another Webring", next="#") }}
+- {{ webring(prev="https://fediring.net/previous?host=theholytachanka.com", webring="https://fediring.net", webringName="Fediring", next="https://fediring.net/next?host=theholytachanka.com") }}
 \
 
 ![](https://512kb.club/assets/images/green-team.svg) 
